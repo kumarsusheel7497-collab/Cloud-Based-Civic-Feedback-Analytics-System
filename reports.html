@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reports - CivicPulse</title>
+    <link rel="stylesheet" href="../css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-brand">
+            <i class="fas fa-city"></i>
+            <span>CivicPulse</span>
+        </div>
+        <ul class="nav-links">
+            <li><a href="../index.html">Home</a></li>
+            <li><a href="submit.html">Submit Feedback</a></li>
+            <li><a href="dashboard.html">Dashboard</a></li>
+            <li><a href="reports.html" class="active">Reports</a></li>
+            <li><a href="admin.html">Admin</a></li>
+        </ul>
+        <div class="hamburger" id="hamburger">
+            <span></span><span></span><span></span>
+        </div>
+    </nav>
+
+    <main class="page-content">
+        <div class="page-header">
+            <h1><i class="fas fa-file-alt"></i> Feedback Reports</h1>
+            <p>Search, filter, and export civic feedback data</p>
+        </div>
+
+        <!-- Search & Export Bar -->
+        <div class="report-toolbar">
+            <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" id="searchInput" placeholder="Search feedback by keyword, ID, or name..." oninput="searchFeedback()">
+            </div>
+            <div class="toolbar-actions">
+                <button class="btn btn-primary btn-sm" onclick="exportCSV()">
+                    <i class="fas fa-file-csv"></i> Export CSV
+                </button>
+                <button class="btn btn-secondary btn-sm" onclick="exportJSON()">
+                    <i class="fas fa-file-code"></i> Export JSON
+                </button>
+                <button class="btn btn-secondary btn-sm" onclick="printReport()">
+                    <i class="fas fa-print"></i> Print
+                </button>
+            </div>
+        </div>
+
+        <!-- Summary Cards -->
+        <div class="summary-strip">
+            <span id="reportSummary">Showing 0 records</span>
+        </div>
+
+        <!-- Reports Table -->
+        <div class="table-container">
+            <table class="report-table" id="reportTable">
+                <thead>
+                    <tr>
+                        <th onclick="sortTable('id')">ID <i class="fas fa-sort"></i></th>
+                        <th onclick="sortTable('date')">Date <i class="fas fa-sort"></i></th>
+                        <th onclick="sortTable('name')">Name <i class="fas fa-sort"></i></th>
+                        <th onclick="sortTable('category')">Category <i class="fas fa-sort"></i></th>
+                        <th onclick="sortTable('ward')">Ward <i class="fas fa-sort"></i></th>
+                        <th onclick="sortTable('subject')">Subject <i class="fas fa-sort"></i></th>
+                        <th onclick="sortTable('urgency')">Urgency <i class="fas fa-sort"></i></th>
+                        <th onclick="sortTable('sentiment')">Sentiment <i class="fas fa-sort"></i></th>
+                        <th onclick="sortTable('status')">Status <i class="fas fa-sort"></i></th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="reportBody">
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        <div class="pagination" id="pagination"></div>
+
+        <!-- Detail Modal -->
+        <div class="modal" id="detailModal">
+            <div class="modal-content modal-large">
+                <button class="modal-close" onclick="closeDetailModal()">&times;</button>
+                <div id="feedbackDetail"></div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="footer-bottom">
+            <p>&copy; 2024 CivicPulse. Built for GitHub Pages.</p>
+        </div>
+    </footer>
+
+    <script src="../js/storage.js"></script>
+    <script>
+        let currentPage = 1;
+        const pageSize = 10;
+        let filteredData = [];
+        let sortField = 'date';
+        let sortDir = -1;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadReports();
+            setupHamburger();
+        });
+
+        function setupHamburger() {
+            const hamburger = document.getElementById('hamburger');
+            const navLinks = document.querySelector('.nav-links');
+            if (hamburger) {
+                hamburger.addEventListener('click', () => {
+                    navLinks.classList.toggle('active');
+                    hamburger.classList.toggle('active');
+                });
+            }
+        }
+
+        function loadReports() {
+            filteredData = StorageManager.getAllFeedback();
+            sortData();
+            renderTable();
+        }
+
+        function searchFeedback() {
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            const allData = StorageManager.getAllFeedback();
+            filteredData = allData.filter(f =>
+                f.id.toLowerCase().includes(query) ||
+                f.name.toLowerCase().includes(query) ||
+                f.subject.toLowerCase().includes(query) ||
+                f.description.toLowerCase().includes(query) ||
+                f.category.toLowerCase().includes(query) ||
+                f.ward.toLowerCase().includes(query)
+            );
+            currentPage = 1;
+            sortData();
+            renderTable();
+        }
+
+        function sortTable(field) {
+            if (sortField === field) {
+                sortDir *= -1;
+            } else {
+                sortField = field;
+                sortDir = 1;
+            }
+            sortData();
+            renderTable();
+        }
+
+        function sortData() {
+            filteredData.sort((a, b) => {
+                let valA = a[sortField] || '';
+                let valB = b[sortField] || '';
+                if (sortField === 'date') {
+                    return (new Date(valA) - new Date(valB)) * sortDir;
+                }
+                return valA.toString().localeCompare(valB.toString()) * sortDir;
+            });
+        }
+
+        function renderTable() {
+            const tbody = document.getElementById('reportBody');
+            const start = (currentPage - 1) * pageSize;
+            const pageData = filteredData.slice(start, start + pageSize);
+
+            document.getElementById('reportSummary').textContent =
+                `Showing ${start + 1}-${Math.min(start + pageSize, filteredData.length)} of ${filteredData.length} records`;
+
+            if (pageData.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="10" class="empty-state">No feedback found</td></tr>`;
+                document.getElementById('pagination').innerHTML = '';
+                return;
+            }
+
+            tbody.innerHTML = pageData.map(f => `
+                <tr>
+                    <td><code>${f.id}</code></td>
+                    <td>${new Date(f.date).toLocaleDateString()}</td>
+                    <td>${f.name}</td>
+                    <td><span class="badge badge-category">${f.category}</span></td>
+                    <td>${f.ward}</td>
+                    <td>${f.subject.substring(0, 30)}...</td>
+                    <td><span class="badge badge-${f.urgency.toLowerCase()}">${f.urgency}</span></td>
+                    <td>${getSentimentEmoji(f.sentiment)}</td>
+                    <td><span class="badge badge-${f.status.toLowerCase().replace(' ', '-')}">${f.status}</span></td>
+                    <td>
+                        <button class="btn-icon" onclick="viewDetail('${f.id}')" title="View">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+
+            renderPagination();
+        }
+
+        function getSentimentEmoji(sentiment) {
+            const emojis = { positive: '😊', neutral: '😐', negative: '😠' };
+            return emojis[sentiment] || '😐';
+        }
+
+        function renderPagination() {
+            const totalPages = Math.ceil(filteredData.length / pageSize);
+            const pagination = document.getElementById('pagination');
+
+            if (totalPages <= 1) { pagination.innerHTML = ''; return; }
+
+            let html = '';
+            if (currentPage > 1) html += `<button onclick="goToPage(${currentPage - 1})">&laquo; Prev</button>`;
+            for (let i = 1; i <= totalPages; i++) {
+                html += `<button class="${i === currentPage ? 'active' : ''}" onclick="goToPage(${i})">${i}</button>`;
+            }
+            if (currentPage < totalPages) html += `<button onclick="goToPage(${currentPage + 1})">Next &raquo;</button>`;
+            pagination.innerHTML = html;
+        }
+
+        function goToPage(page) {
+            currentPage = page;
+            renderTable();
+            window.scrollTo({ top: 300, behavior: 'smooth' });
+        }
+
+        function viewDetail(id) {
+            const f = StorageManager.getFeedbackById(id);
+            if (!f) return;
+
+            document.getElementById('feedbackDetail').innerHTML = `
+                <h2>Feedback Details</h2>
+                <div class="detail-grid">
+                    <div class="detail-item"><strong>ID:</strong> ${f.id}</div>
+                    <div class="detail-item"><strong>Date:</strong> ${new Date(f.date).toLocaleString()}</div>
+                    <div class="detail-item"><strong>Name:</strong> ${f.name}</div>
+                    <div class="detail-item"><strong>Email:</strong> ${f.email}</div>
+                    <div class="detail-item"><strong>Phone:</strong> ${f.phone || 'N/A'}</div>
+                    <div class="detail-item"><strong>Ward:</strong> ${f.ward}</div>
+                    <div class="detail-item"><strong>Category:</strong> ${f.category}</div>
+                    <div class="detail-item"><strong>Urgency:</strong> <span class="badge badge-${f.urgency.toLowerCase()}">${f.urgency}</span></div>
+                    <div class="detail-item"><strong>Status:</strong> <span class="badge badge-${f.status.toLowerCase().replace(' ', '-')}">${f.status}</span></div>
+                    <div class="detail-item"><strong>Sentiment:</strong> ${getSentimentEmoji(f.sentiment)} ${f.sentiment}</div>
+                    <div class="detail-item"><strong>Rating:</strong> ${'⭐'.repeat(f.rating)}</div>
+                    <div class="detail-item"><strong>Location:</strong> ${f.location || 'N/A'}</div>
+                </div>
+                <div class="detail-full">
+                    <strong>Subject:</strong>
+                    <p>${f.subject}</p>
+                </div>
+                <div class="detail-full">
+                    <strong>Description:</strong>
+                    <p>${f.description}</p>
+                </div>
+            `;
+            document.getElementById('detailModal').classList.add('show');
+        }
+
+        function closeDetailModal() {
+            document.getElementById('detailModal').classList.remove('show');
+        }
+
+        function exportCSV() {
+            if (filteredData.length === 0) { alert('No data to export'); return; }
+            const headers = ['ID', 'Date', 'Name', 'Email', 'Phone', 'Ward', 'Category', 'Subject', 'Description', 'Urgency', 'Sentiment', 'Rating', 'Status', 'Location'];
+            const rows = filteredData.map(f => [
+                f.id, f.date, f.name, f.email, f.phone, f.ward, f.category,
+                `"${f.subject}"`, `"${f.description}"`, f.urgency, f.sentiment, f.rating, f.status, f.location
+            ]);
+            const csv = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+            downloadFile(csv, 'civic_feedback_report.csv', 'text/csv');
+        }
+
+        function exportJSON() {
+            if (filteredData.length === 0) { alert('No data to export'); return; }
+            const json = JSON.stringify(filteredData, null, 2);
+            downloadFile(json, 'civic_feedback_report.json', 'application/json');
+        }
+
+        function downloadFile(content, filename, type) {
+            const blob = new Blob([content], { type });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url; a.download = filename;
+            document.body.appendChild(a); a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        function printReport() {
+            window.print();
+        }
+    </script>
+</body>
+</html>

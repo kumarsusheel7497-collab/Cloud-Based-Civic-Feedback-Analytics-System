@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - CivicPulse</title>
+    <link rel="stylesheet" href="../css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-brand">
+            <i class="fas fa-city"></i>
+            <span>CivicPulse</span>
+        </div>
+        <ul class="nav-links">
+            <li><a href="../index.html">Home</a></li>
+            <li><a href="submit.html">Submit Feedback</a></li>
+            <li><a href="dashboard.html">Dashboard</a></li>
+            <li><a href="reports.html">Reports</a></li>
+            <li><a href="admin.html" class="active">Admin</a></li>
+        </ul>
+        <div class="hamburger" id="hamburger">
+            <span></span><span></span><span></span>
+        </div>
+    </nav>
+
+    <main class="page-content">
+        <div class="page-header">
+            <h1><i class="fas fa-cog"></i> Admin Panel</h1>
+            <p>Manage feedback status and system data</p>
+        </div>
+
+        <!-- Admin Actions -->
+        <div class="admin-actions">
+            <button class="btn btn-primary" onclick="loadSampleDataAdmin()">
+                <i class="fas fa-database"></i> Load 50 Sample Feedbacks
+            </button>
+            <button class="btn btn-danger" onclick="clearAllData()">
+                <i class="fas fa-trash"></i> Clear All Data
+            </button>
+            <span class="admin-info" id="adminInfo">Total: 0 feedbacks</span>
+        </div>
+
+        <!-- Admin Table -->
+        <div class="table-container">
+            <table class="report-table" id="adminTable">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Date</th>
+                        <th>Name</th>
+                        <th>Category</th>
+                        <th>Subject</th>
+                        <th>Urgency</th>
+                        <th>Status</th>
+                        <th>Update Status</th>
+                        <th>Delete</th>
+                    </tr>
+                </thead>
+                <tbody id="adminBody">
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="footer-bottom">
+            <p>&copy; 2024 CivicPulse. Built for GitHub Pages.</p>
+        </div>
+    </footer>
+
+    <script src="../js/storage.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            loadAdminTable();
+            setupHamburger();
+        });
+
+        function setupHamburger() {
+            const hamburger = document.getElementById('hamburger');
+            const navLinks = document.querySelector('.nav-links');
+            if (hamburger) {
+                hamburger.addEventListener('click', () => {
+                    navLinks.classList.toggle('active');
+                    hamburger.classList.toggle('active');
+                });
+            }
+        }
+
+        function loadAdminTable() {
+            const data = StorageManager.getAllFeedback();
+            const tbody = document.getElementById('adminBody');
+            document.getElementById('adminInfo').textContent = `Total: ${data.length} feedbacks`;
+
+            if (data.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="9" class="empty-state">No data. Click "Load Sample Feedbacks" to get started.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = data.sort((a, b) => new Date(b.date) - new Date(a.date)).map(f => `
+                <tr>
+                    <td><code>${f.id}</code></td>
+                    <td>${new Date(f.date).toLocaleDateString()}</td>
+                    <td>${f.name}</td>
+                    <td><span class="badge badge-category">${f.category}</span></td>
+                    <td>${f.subject.substring(0, 25)}...</td>
+                    <td><span class="badge badge-${f.urgency.toLowerCase()}">${f.urgency}</span></td>
+                    <td><span class="badge badge-${f.status.toLowerCase().replace(' ', '-')}">${f.status}</span></td>
+                    <td>
+                        <select onchange="updateStatus('${f.id}', this.value)" class="status-select">
+                            <option value="Pending" ${f.status === 'Pending' ? 'selected' : ''}>Pending</option>
+                            <option value="In Progress" ${f.status === 'In Progress' ? 'selected' : ''}>In Progress</option>
+                            <option value="Resolved" ${f.status === 'Resolved' ? 'selected' : ''}>Resolved</option>
+                            <option value="Rejected" ${f.status === 'Rejected' ? 'selected' : ''}>Rejected</option>
+                        </select>
+                    </td>
+                    <td>
+                        <button class="btn-icon btn-danger" onclick="deleteFeedback('${f.id}')" title="Delete">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function updateStatus(id, newStatus) {
+            StorageManager.updateFeedbackStatus(id, newStatus);
+            loadAdminTable();
+        }
+
+        function deleteFeedback(id) {
+            if (confirm('Delete this feedback?')) {
+                StorageManager.deleteFeedback(id);
+                loadAdminTable();
+            }
+        }
+
+        function clearAllData() {
+            if (confirm('Are you sure? This will delete ALL feedback data!')) {
+                StorageManager.clearAll();
+                loadAdminTable();
+            }
+        }
+
+        function loadSampleDataAdmin() {
+            StorageManager.loadSampleData();
+            loadAdminTable();
+            alert('50 sample feedbacks loaded!');
+        }
+    </script>
+</body>
+</html>

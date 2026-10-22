@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Submit Feedback - CivicPulse</title>
+    <link rel="stylesheet" href="../css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-brand">
+            <i class="fas fa-city"></i>
+            <span>CivicPulse</span>
+        </div>
+        <ul class="nav-links">
+            <li><a href="../index.html">Home</a></li>
+            <li><a href="submit.html" class="active">Submit Feedback</a></li>
+            <li><a href="dashboard.html">Dashboard</a></li>
+            <li><a href="reports.html">Reports</a></li>
+            <li><a href="admin.html">Admin</a></li>
+        </ul>
+        <div class="hamburger" id="hamburger">
+            <span></span><span></span><span></span>
+        </div>
+    </nav>
+
+    <main class="page-content">
+        <div class="page-header">
+            <h1><i class="fas fa-comment-dots"></i> Submit Civic Feedback</h1>
+            <p>Help us improve your community by reporting issues</p>
+        </div>
+
+        <div class="form-container">
+            <form id="feedbackForm" class="feedback-form">
+                <!-- Personal Info -->
+                <div class="form-section">
+                    <h3><i class="fas fa-user"></i> Your Information</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="name">Full Name *</label>
+                            <input type="text" id="name" required placeholder="Enter your name">
+                        </div>
+                        <div class="form-group">
+                            <label for="email">Email Address *</label>
+                            <input type="email" id="email" required placeholder="Enter your email">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="phone">Phone Number</label>
+                            <input type="tel" id="phone" placeholder="Enter phone number">
+                        </div>
+                        <div class="form-group">
+                            <label for="ward">Ward / Area *</label>
+                            <select id="ward" required>
+                                <option value="">Select Ward</option>
+                                <option value="Ward 1 - Downtown">Ward 1 - Downtown</option>
+                                <option value="Ward 2 - Riverside">Ward 2 - Riverside</option>
+                                <option value="Ward 3 - Hillside">Ward 3 - Hillside</option>
+                                <option value="Ward 4 - Lakefront">Ward 4 - Lakefront</option>
+                                <option value="Ward 5 - Industrial">Ward 5 - Industrial</option>
+                                <option value="Ward 6 - Suburbs">Ward 6 - Suburbs</option>
+                                <option value="Ward 7 - Old Town">Ward 7 - Old Town</option>
+                                <option value="Ward 8 - Market Area">Ward 8 - Market Area</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Feedback Details -->
+                <div class="form-section">
+                    <h3><i class="fas fa-clipboard-list"></i> Feedback Details</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="category">Category *</label>
+                            <select id="category" required>
+                                <option value="">Select Category</option>
+                                <option value="Roads & Transport">Roads & Transport</option>
+                                <option value="Water Supply">Water Supply</option>
+                                <option value="Sanitation">Sanitation & Waste</option>
+                                <option value="Electricity">Electricity & Street Lights</option>
+                                <option value="Parks & Recreation">Parks & Recreation</option>
+                                <option value="Public Safety">Public Safety</option>
+                                <option value="Healthcare">Healthcare</option>
+                                <option value="Education">Education</option>
+                                <option value="Noise Pollution">Noise Pollution</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="urgency">Urgency Level *</label>
+                            <select id="urgency" required>
+                                <option value="">Select Urgency</option>
+                                <option value="Low">Low - General Suggestion</option>
+                                <option value="Medium">Medium - Needs Attention</option>
+                                <option value="High">High - Urgent Issue</option>
+                                <option value="Critical">Critical - Emergency</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="subject">Subject *</label>
+                        <input type="text" id="subject" required placeholder="Brief title of your feedback">
+                    </div>
+                    <div class="form-group">
+                        <label for="description">Detailed Description *</label>
+                        <textarea id="description" rows="5" required placeholder="Describe the issue in detail. Include location, time, and any other relevant information."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="location">Specific Location / Address</label>
+                        <input type="text" id="location" placeholder="Street address or landmark">
+                    </div>
+                </div>
+
+                <!-- Rating -->
+                <div class="form-section">
+                    <h3><i class="fas fa-star"></i> Rate City Services</h3>
+                    <div class="rating-group">
+                        <label>How satisfied are you with current civic services?</label>
+                        <div class="star-rating" id="starRating">
+                            <i class="far fa-star" data-value="1"></i>
+                            <i class="far fa-star" data-value="2"></i>
+                            <i class="far fa-star" data-value="3"></i>
+                            <i class="far fa-star" data-value="4"></i>
+                            <i class="far fa-star" data-value="5"></i>
+                        </div>
+                        <input type="hidden" id="rating" value="0">
+                        <span class="rating-text" id="ratingText">Click to rate</span>
+                    </div>
+                </div>
+
+                <!-- Sentiment -->
+                <div class="form-section">
+                    <h3><i class="fas fa-face-smile"></i> Overall Sentiment</h3>
+                    <div class="sentiment-group">
+                        <label class="sentiment-option">
+                            <input type="radio" name="sentiment" value="positive">
+                            <span class="sentiment-emoji">😊</span>
+                            <span>Positive</span>
+                        </label>
+                        <label class="sentiment-option">
+                            <input type="radio" name="sentiment" value="neutral" checked>
+                            <span class="sentiment-emoji">😐</span>
+                            <span>Neutral</span>
+                        </label>
+                        <label class="sentiment-option">
+                            <input type="radio" name="sentiment" value="negative">
+                            <span class="sentiment-emoji">😠</span>
+                            <span>Negative</span>
+                        </label>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-large">
+                    <i class="fas fa-paper-plane"></i> Submit Feedback
+                </button>
+            </form>
+        </div>
+
+        <!-- Success Modal -->
+        <div class="modal" id="successModal">
+            <div class="modal-content">
+                <div class="modal-icon success">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <h2>Feedback Submitted!</h2>
+                <p>Your feedback ID is: <strong id="feedbackId"></strong></p>
+                <p>Thank you for helping improve our community.</p>
+                <div class="modal-buttons">
+                    <button class="btn btn-primary" onclick="closeModal()">Submit Another</button>
+                    <a href="dashboard.html" class="btn btn-secondary">View Dashboard</a>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="footer-bottom">
+            <p>&copy; 2024 CivicPulse. Built for GitHub Pages.</p>
+        </div>
+    </footer>
+
+    <script src="../js/storage.js"></script>
+    <script src="../js/feedback.js"></script>
+</body>
+</html>
